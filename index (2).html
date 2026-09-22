@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledger: 52 calculators in HTML and JavaScript</title>
+<meta name="description" content="Ledger is a set of 52 ready-made calculators for finance, real estate, business, health, building, cars and everyday life. Plain HTML and JavaScript, delivered as one zip file.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231C2320'/%3E%3Crect x='7' y='9' width='18' height='2.5' fill='%23F6F3EC'/%3E%3Crect x='7' y='15' width='18' height='2.5' fill='%23F6F3EC'/%3E%3Crect x='7' y='21' width='11' height='2.5' fill='%23A5782F'/%3E%3C/svg%3E">
+<!-- Fonts: change these two to the fonts your Ledger tool uses, or delete this block to use system fonts. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F3EC;
+  --rule:#D9D3C3;
+  --card:#FFFFFF;
+  --line:#CDC6B4;
+  --ink:#1C2320;
+  --muted:#5B6560;
+  --amber:#8A6323;
+  --amber-line:#A5782F;
+  --green-bg:#E5ECE7;
+  --green-ink:#3F6A56;
+  --accent-bg:#8A6323;
+  --accent-fg:#FFFFFF;
+  --serif:"Source Serif 4","Source Serif Pro",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Consolas,"Liberation Mono",monospace;
+}
+:root[data-theme="dark"]{
+  --bg:#14181A;
+  --rule:#262C2C;
+  --card:#1B2022;
+  --line:#333C3A;
+  --ink:#ECE7DC;
+  --muted:#9AA39C;
+  --amber:#D8A24C;
+  --amber-line:#D8A24C;
+  --green-bg:#1F2B27;
+  --green-ink:#86BFA2;
+  --accent-bg:#D8A24C;
+  --accent-fg:#14181A;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background-color:var(--bg);
+  background-image:repeating-linear-gradient(to bottom, transparent 0, transparent 35px, var(--rule) 35px, var(--rule) 36px);
+  background-position:0 -12px;
+  color:var(--ink);
+  font:15px/1.65 var(--mono);
+}
+[hidden]{display:none !important}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+
+/* Header */
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:22px 0 14px;border-bottom:2px solid var(--line)}
+.brand{font:700 1.8rem/1.15 var(--serif);letter-spacing:-0.01em;text-decoration:none;display:block}
+.tagline{margin:2px 0 0;font-size:.82rem;color:var(--muted)}
+.toggle{
+  font:500 .8rem var(--mono);color:var(--ink);background:var(--card);border:1px solid var(--line);
+  border-radius:4px;padding:7px 12px;cursor:pointer;white-space:nowrap;
+}
+.toggle:hover{border-color:var(--muted)}
+
+/* Hero */
+.hero{padding:44px 0 46px}
+.hero h1{font:700 clamp(1.7rem,3.6vw,2.35rem)/1.2 var(--serif);letter-spacing:-0.01em;margin:0 0 16px;max-width:24em}
+.hero p{margin:0 0 24px;max-width:58ch;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px}
+.btn{
+  display:inline-block;background:var(--accent-bg);color:var(--accent-fg);text-decoration:none;
+  font:600 .9rem var(--mono);padding:11px 18px;border-radius:4px;border:1px solid var(--accent-bg);cursor:pointer;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn.plain{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.plain:hover{border-color:var(--muted);filter:none}
+
+/* Section headings */
+.label{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.section{padding:56px 0 8px}
+.section h2{font:700 1.55rem/1.2 var(--serif);margin:0 0 8px}
+.lead{margin:0 0 28px;color:var(--muted);max-width:60ch}
+
+/* Demo */
+.demo{display:grid;grid-template-columns:230px minmax(0,1fr);gap:0 34px;align-items:start;border-top:1px solid var(--line);padding-top:26px}
+.side{border-right:1px solid var(--line);padding-right:20px}
+.side ul{list-style:none;margin:0;padding:0}
+.side button{
+  display:block;width:100%;text-align:left;font:400 .88rem/1.35 var(--mono);color:var(--muted);
+  background:none;border:0;border-bottom:1px dashed var(--rule);padding:9px 0;cursor:pointer;
+}
+.side button:hover{color:var(--ink)}
+.side button[aria-current="true"]{color:var(--ink);font-weight:600;border-bottom:1px dashed var(--amber-line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:26px 28px 28px}
+.card h3{font:700 1.4rem/1.2 var(--serif);margin:0 0 6px}
+.card .desc{margin:0 0 20px;color:var(--muted);font-size:.86rem;max-width:44ch}
+.row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);font-size:.86rem;color:var(--muted)}
+.ctl{display:flex;align-items:center;gap:8px}
+.ctl input{
+  width:118px;text-align:right;font:400 .95rem var(--mono);color:var(--ink);background:var(--bg);
+  border:1px solid var(--line);border-radius:3px;padding:7px 10px;
+}
+.unit{width:44px;font-size:.78rem;color:var(--muted)}
+.results{margin-top:22px}
+.res{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;font-size:.8rem}
+.res .v{font:600 1.5rem/1.2 var(--mono);font-variant-numeric:tabular-nums;text-align:right;overflow-wrap:anywhere}
+.res.main{border:1px solid var(--amber-line);background:var(--card);color:var(--muted)}
+.res.main .v{color:var(--amber)}
+.res.sub{background:var(--green-bg);color:var(--muted);margin-top:3px}
+.res.sub .v{color:var(--green-ink);font-size:1.15rem}
+.how{margin:20px 0 0;max-width:640px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:22px 26px 24px}
+.how h4{font:700 1.05rem/1.2 var(--serif);margin:0 0 10px}
+.how p{margin:0 0 12px;font-size:.86rem;color:var(--ink)}
+.formula{margin:0;background:var(--bg);border:1px dashed var(--line);border-radius:3px;padding:12px 14px;font-size:.78rem;color:var(--muted);white-space:pre-wrap}
+.smallnote{margin:14px 2px 0;font-size:.76rem;color:var(--muted)}
+
+/* Get */
+.get{display:grid;grid-template-columns:repeat(3,1fr);gap:0 28px;border-top:1px solid var(--line);padding-top:24px}
+.get h3{font:700 1.05rem/1.25 var(--serif);margin:0 0 6px}
+.get p{margin:0;color:var(--muted);font-size:.86rem;max-width:32ch}
+
+/* Catalogue */
+.cats{columns:3 250px;column-gap:34px;border-top:1px solid var(--line);padding-top:24px}
+.cat{break-inside:avoid;margin:0 0 26px}
+.cat ul{list-style:none;margin:0;padding:0}
+.cat li{border-bottom:1px dashed var(--rule);padding:6px 0;font-size:.84rem;color:var(--ink);line-height:1.4}
+
+/* Licences */
+.tiers{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.tier{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:26px 28px 28px}
+.tier.pro{border-color:var(--amber-line)}
+.tier h3{font:700 1.25rem/1.2 var(--serif);margin:0}
+.price{font:600 2.3rem/1.15 var(--mono);color:var(--amber);margin:10px 0 8px;letter-spacing:-0.02em}
+.price small{font-size:.8rem;font-weight:400;color:var(--muted);letter-spacing:0}
+.tier p{margin:0 0 22px;color:var(--muted);font-size:.86rem;max-width:36ch}
+.fine{margin:18px 0 0;color:var(--muted);font-size:.82rem;max-width:66ch}
+
+/* FAQ */
+.faq{max-width:760px;border-top:1px solid var(--line)}
+details{border-bottom:1px dashed var(--line);padding:14px 0;background:transparent}
+summary{cursor:pointer;font-weight:600;font-size:.9rem;list-style:none;display:flex;justify-content:space-between;gap:20px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-weight:400;font-size:1.15rem;line-height:1;color:var(--muted)}
+details[open] summary::after{content:"\2212"}
+details p{margin:10px 0 0;color:var(--muted);font-size:.86rem;max-width:62ch}
+
+/* Footer */
+footer{margin-top:64px;border-top:2px solid var(--line);padding:22px 0 46px;color:var(--muted);font-size:.78rem}
+footer p{margin:0 0 6px;max-width:74ch}
+
+@media (max-width:860px){
+  .demo{grid-template-columns:1fr;gap:20px}
+  .side{border-right:0;padding-right:0}
+  .side ul{display:grid;grid-template-columns:repeat(2,1fr);gap:0 18px}
+  .get{grid-template-columns:1fr;gap:22px}
+  .tiers{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .wrap{padding:0 16px}
+  .card{padding:20px 16px 22px}
+  .row{flex-direction:column;align-items:flex-start;gap:8px}
+  .ctl{width:100%}
+  .ctl input{flex:1;width:auto}
+  .side ul{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <a class="brand" href="#top" id="top">Ledger</a>
+      <p class="tagline">Source files for 52 calculators: finance, health &amp; everyday life</p>
+    </div>
+    <button type="button" class="toggle" id="theme-toggle">Toggle theme</button>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <h1 id="hero-title">52 calculators as plain HTML and JavaScript, in one download.</h1>
+      <p>Ledger covers money, property, business, health, building, cars and everyday sums. You get the source files as a zip and can use them in your own website or project under the licence you choose. Four of the 52 are live below, so you can try them first.</p>
+      <div class="actions">
+        <a class="btn" href="#licences">See licences and prices</a>
+        <a class="btn plain" href="#calculators">Browse all 52</a>
+      </div>
+    </section>
+
+    <section id="demo" aria-labelledby="demo-title">
+      <p class="label" id="demo-title">Try four of the 52</p>
+      <div class="demo">
+        <nav class="side" aria-label="Demo calculators">
+          <ul>
+            <li><button type="button" data-key="emi" aria-current="true">Loan / EMI calculator</button></li>
+            <li><button type="button" data-key="bmi" aria-current="false">BMI calculator</button></li>
+            <li><button type="button" data-key="tip" aria-current="false">Tip calculator</button></li>
+            <li><button type="button" data-key="pct" aria-current="false">Percentage calculator</button></li>
+          </ul>
+        </nav>
+        <div>
+          <div class="card" id="stage" aria-live="polite">
+            <noscript>Turn on JavaScript to use the live demo.</noscript>
+          </div>
+          <div class="how" id="how"></div>
+          <p class="smallnote">Results are estimates for general information only.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="get-title">
+      <h2 id="get-title">What you get</h2>
+      <p class="lead">One zip file. Nothing to subscribe to.</p>
+      <div class="get">
+        <div>
+          <h3>The calculators</h3>
+          <p>All 52 calculators as HTML and JavaScript source files that run in a web browser.</p>
+        </div>
+        <div>
+          <h3>Licence files</h3>
+          <p>The Standard and Commercial licence texts. Your purchase tells you which one applies to you.</p>
+        </div>
+        <div>
+          <h3>Documentation</h3>
+          <p>A README that explains what is in the package and how to use it.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="calculators" aria-labelledby="cal-title">
+      <h2 id="cal-title">All 52 calculators</h2>
+      <p class="lead">Eight groups, from loans and taxes to paint, fuel and recipes.</p>
+      <div class="cats">
+        <div class="cat">
+          <p class="label">Finance (20)</p>
+          <ul>
+            <li>Loan / EMI calculator</li><li>Mortgage calculator</li><li>Savings &amp; compound interest</li>
+            <li>Break-even point</li><li>Profit margin &amp; markup</li><li>Freelance hourly rate</li>
+            <li>Sales tax / VAT</li><li>Percentage calculator</li><li>Discount calculator</li><li>ROI calculator</li>
+            <li>Retirement savings</li><li>Debt payoff</li><li>Net worth calculator</li><li>Student loan repayment</li>
+            <li>Dollar-cost averaging (DCA)</li><li>Dividend yield &amp; reinvestment</li><li>Salary &amp; paycheck calculator</li>
+            <li>Overtime pay calculator</li><li>Life insurance needs (DIME)</li><li>Crypto profit / loss calculator</li>
+          </ul>
+        </div>
+        <div class="cat">
+          <p class="label">Real estate (7)</p>
+          <ul>
+            <li>Rent vs. buy</li><li>Rental yield</li><li>House flipping profit</li><li>Price per square foot</li>
+            <li>Property tax estimator</li><li>Home affordability calculator</li><li>Mortgage refinance break-even</li>
+          </ul>
+        </div>
+        <div class="cat">
+          <p class="label">Business &amp; marketing (5)</p>
+          <ul>
+            <li>Ad spend / ROAS</li><li>Customer acquisition cost</li><li>Etsy fee calculator</li>
+            <li>Payment processor fee</li><li>Amazon FBA fee &amp; profit</li>
+          </ul>
+        </div>
+        <div class="cat">
+          <p class="label">Health &amp; fitness (8)</p>
+          <ul>
+            <li>BMI calculator</li><li>Body fat % calculator</li><li>BMR / TDEE calculator</li><li>Ideal weight calculator</li>
+            <li>Macro split calculator</li><li>Water intake calculator</li><li>Pregnancy due date</li><li>Sleep cycle / bedtime calculator</li>
+          </ul>
+        </div>
+        <div class="cat">
+          <p class="label">Construction &amp; DIY (4)</p>
+          <ul>
+            <li>Paint calculator</li><li>Flooring / tile calculator</li><li>Concrete volume calculator</li><li>Mulch / soil volume</li>
+          </ul>
+        </div>
+        <div class="cat">
+          <p class="label">Automotive (2)</p>
+          <ul>
+            <li>Fuel cost / gas mileage</li><li>Car loan calculator</li>
+          </ul>
+        </div>
+        <div class="cat">
+          <p class="label">Everyday &amp; education (5)</p>
+          <ul>
+            <li>Age calculator</li><li>Tip calculator</li><li>Grade calculator</li><li>GPA calculator</li><li>Unit converter</li>
+          </ul>
+        </div>
+        <div class="cat">
+          <p class="label">Food &amp; cooking (1)</p>
+          <ul>
+            <li>Recipe &amp; cooking converter</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="licences" aria-labelledby="lic-title">
+      <h2 id="lic-title">Licences</h2>
+      <p class="lead">The package is the same in both. The licence decides how you can use it.</p>
+      <div class="tiers">
+        <div class="tier">
+          <h3>Standard licence</h3>
+          <div class="price">$49 <small>one-time</small></div>
+          <p>For personal, non-commercial use.</p>
+          <!-- Replace this mailto link with your checkout link when your store is live. -->
+          <a class="btn" href="mailto:sarkartonmoy892@gmail.com?subject=Ledger%20Standard%20licence">Notify me at launch</a>
+        </div>
+        <div class="tier pro">
+          <h3>Commercial licence</h3>
+          <div class="price">$199 <small>one-time</small></div>
+          <p>For use in commercial projects, including work for clients.</p>
+          <!-- Replace this mailto link with your checkout link when your store is live. -->
+          <a class="btn" href="mailto:sarkartonmoy892@gmail.com?subject=Ledger%20Commercial%20licence">Notify me at launch</a>
+        </div>
+      </div>
+      <p class="fine">Checkout is being set up. Use the buttons to email a request and you will hear back when it opens. The full terms are in the licence files included in the download.</p>
+    </section>
+
+    <section class="section" id="questions" aria-labelledby="faq-title">
+      <h2 id="faq-title">Questions</h2>
+      <div class="faq">
+        <details>
+          <summary>What do I receive after buying?</summary>
+          <p>One zip file with the calculator source files, the licence files and a README.</p>
+        </details>
+        <details>
+          <summary>What are the calculators built with?</summary>
+          <p>HTML and JavaScript files that run in a web browser.</p>
+        </details>
+        <details>
+          <summary>Can I change the files?</summary>
+          <p>You get the source files. What you may do with them is set by the licence you buy.</p>
+        </details>
+        <details>
+          <summary>Are the results financial, tax or medical advice?</summary>
+          <p>No. The results are estimates for general information. For decisions about money, tax or health, speak to a qualified professional.</p>
+        </details>
+        <details>
+          <summary>How do I ask something else?</summary>
+          <p>Email <a href="mailto:sarkartonmoy892@gmail.com">sarkartonmoy892@gmail.com</a>.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Ledger. Contact: <a href="mailto:sarkartonmoy892@gmail.com">sarkartonmoy892@gmail.com</a></p>
+    <p>All calculator results are estimates and are not financial, tax, legal or medical advice.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  /* Theme toggle: follows the visitor's system setting first, then the button. */
+  var root = document.documentElement;
+  var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  root.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('theme-toggle').addEventListener('click', function(){
+    root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  /* Demo calculators */
+  var $ = function(id){ return document.getElementById(id); };
+  var nf = function(n, d){
+    if (d === undefined) d = 2;
+    return n.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
+  };
+  var trim = function(n){ return nf(n, 2).replace(/\.?0+$/, ''); };
+
+  var defs = {
+    emi: {
+      title: 'Loan calculator',
+      desc: 'Work out what a loan will really cost before you sign anything.',
+      fields: [
+        {id:'emi-amount', label:'Loan amount', value:10000, unit:''},
+        {id:'emi-rate', label:'Annual interest rate', value:8, unit:'%'},
+        {id:'emi-years', label:'Loan term', value:5, unit:'years'}
+      ],
+      how: 'The monthly payment stays the same for the whole loan. The yearly rate is turned into a monthly rate, and the loan is spread over every month of the term. Early payments are mostly interest and later ones are mostly principal.',
+      formula: 'payment = P \u00d7 r \u00d7 (1+r)^n \u00f7 [(1+r)^n \u2212 1]\nwhere P = loan amount, r = monthly interest rate,\nn = number of months',
+      calc: function(g){
+        var P = g('emi-amount'), rate = g('emi-rate'), n = Math.round(g('emi-years') * 12);
+        if (!(P > 0) || !(rate >= 0) || !(n >= 1)) return null;
+        var r = rate / 1200;
+        var pay = r === 0 ? P / n : P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+        var total = pay * n;
+        return {main:['Monthly payment', nf(pay)], subs:[['Total interest paid', nf(total - P)], ['Total repaid', nf(total)]]};
+      }
+    },
+    bmi: {
+      title: 'BMI calculator',
+      desc: 'Body mass index from your weight and height, for adults.',
+      fields: [
+        {id:'bmi-kg', label:'Weight', value:70, unit:'kg'},
+        {id:'bmi-cm', label:'Height', value:170, unit:'cm'}
+      ],
+      how: 'BMI is your weight in kilograms divided by your height in metres, squared. For adults, 18.5 to 24.9 is the normal range. BMI is a rough screening number and does not measure body fat.',
+      formula: 'BMI = weight (kg) \u00f7 height (m)^2',
+      calc: function(g){
+        var kg = g('bmi-kg'), cm = g('bmi-cm');
+        if (!(kg > 0) || !(cm > 0)) return null;
+        var h = cm / 100, b = kg / (h * h);
+        var cat = b < 18.5 ? 'Underweight' : b < 25 ? 'Normal weight' : b < 30 ? 'Overweight' : 'Obesity';
+        return {main:['Body mass index', nf(b, 1)], subs:[['Category', cat], ['Normal range at this height', nf(18.5 * h * h, 1) + '\u2013' + nf(24.9 * h * h, 1) + ' kg']]};
+      }
+    },
+    tip: {
+      title: 'Tip calculator',
+      desc: 'Add a tip to a bill and split it between people.',
+      fields: [
+        {id:'tip-bill', label:'Bill total', value:84.5, unit:''},
+        {id:'tip-pct', label:'Tip', value:15, unit:'%'},
+        {id:'tip-people', label:'People sharing', value:2, unit:''}
+      ],
+      how: 'The tip is the bill multiplied by the tip percentage. The total is the bill plus the tip, and each person pays an equal share of the total.',
+      formula: 'tip = bill \u00d7 tip% \u00f7 100\ntotal = bill + tip\neach person = total \u00f7 people',
+      calc: function(g){
+        var bill = g('tip-bill'), pct = g('tip-pct'), people = Math.floor(g('tip-people'));
+        if (!(bill > 0) || !(pct >= 0) || !(people >= 1)) return null;
+        var tip = bill * pct / 100, total = bill + tip;
+        return {main:['Total with tip', nf(total)], subs:[['Tip', nf(tip)], ['Each person pays', nf(total / people)]]};
+      }
+    },
+    pct: {
+      title: 'Percentage calculator',
+      desc: 'Two common percentage questions, answered at once.',
+      fields: [
+        {id:'pct-a', label:'Number A', value:15, unit:''},
+        {id:'pct-b', label:'Number B', value:240, unit:''}
+      ],
+      how: 'The first answer is A percent of B. The second answer shows what percentage A is of B.',
+      formula: 'A% of B = A \u00f7 100 \u00d7 B\nA is what % of B = A \u00f7 B \u00d7 100',
+      calc: function(g){
+        var a = g('pct-a'), b = g('pct-b');
+        if (!isFinite(a) || !isFinite(b)) return null;
+        return {
+          main:[trim(a) + '% of ' + trim(b), nf(a / 100 * b)],
+          subs:[[trim(a) + ' is what % of ' + trim(b), b === 0 ? 'n/a' : nf(a / b * 100) + '%']]
+        };
+      }
+    }
+  };
+
+  var order = ['emi', 'bmi', 'tip', 'pct'];
+  var stage = $('stage');
+  var active = 'emi';
+  var mainK = {}, mainV = {}, subBox = {}, panels = {};
+
+  function el(tag, cls, text){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  var get = function(id){
+    var v = $(id).value;
+    return v === '' ? NaN : Number(v);
+  };
+
+  order.forEach(function(key){
+    var d = defs[key];
+    var panel = el('div');
+    panel.id = 'panel-' + key;
+    panel.hidden = key !== active;
+    panel.appendChild(el('h3', null, d.title));
+    panel.appendChild(el('p', 'desc', d.desc));
+    d.fields.forEach(function(f){
+      var row = el('label', 'row');
+      row.appendChild(el('span', null, f.label));
+      var ctl = el('span', 'ctl');
+      var input = document.createElement('input');
+      input.id = f.id;
+      input.type = 'number';
+      input.inputMode = 'decimal';
+      input.step = 'any';
+      input.value = f.value;
+      input.addEventListener('input', render);
+      ctl.appendChild(input);
+      ctl.appendChild(el('span', 'unit', f.unit));
+      row.appendChild(ctl);
+      panel.appendChild(row);
+    });
+    var results = el('div', 'results');
+    var main = el('div', 'res main');
+    mainK[key] = el('span');
+    mainV[key] = el('span', 'v');
+    main.appendChild(mainK[key]);
+    main.appendChild(mainV[key]);
+    subBox[key] = el('div');
+    results.appendChild(main);
+    results.appendChild(subBox[key]);
+    panel.appendChild(results);
+    panels[key] = panel;
+    stage.appendChild(panel);
+  });
+
+  function render(){
+    var d = defs[active];
+    var out = d.calc(get);
+    subBox[active].innerHTML = '';
+    if (!out) {
+      mainK[active].textContent = 'Check your numbers';
+      mainV[active].textContent = '\u2014';
+    } else {
+      mainK[active].textContent = out.main[0];
+      mainV[active].textContent = out.main[1];
+      out.subs.forEach(function(s){
+        var row = el('div', 'res sub');
+        row.appendChild(el('span', null, s[0]));
+        row.appendChild(el('span', 'v', s[1]));
+        subBox[active].appendChild(row);
+      });
+    }
+    $('how').innerHTML = '';
+    $('how').appendChild(el('h4', null, 'How it\u2019s calculated'));
+    $('how').appendChild(el('p', null, d.how));
+    $('how').appendChild(el('pre', 'formula', d.formula));
+  }
+
+  var buttons = document.querySelectorAll('.side button');
+  Array.prototype.forEach.call(buttons, function(btn){
+    btn.addEventListener('click', function(){
+      active = btn.getAttribute('data-key');
+      Array.prototype.forEach.call(buttons, function(b){
+        b.setAttribute('aria-current', b === btn ? 'true' : 'false');
+      });
+      order.forEach(function(k){ panels[k].hidden = k !== active; });
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
